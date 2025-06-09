@@ -1,0 +1,514 @@
+{% extends "base.html" %}
+
+{% block title %}{{ neighbor.fullName or neighbor.id }} - Details{% endblock %}
+
+{% block head %}
+<style>
+    .profile-header {
+        position: relative;
+        padding: 30px 0;
+        margin-bottom: 30px;
+        border-radius: var(--card-radius);
+        overflow: hidden;
+    }
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, var(--accent-color), #68aaec);
+        opacity: 0.1;
+        z-index: -1;
+    }
+    .profile-pic {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 4px solid white;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        transition: all 0.5s;
+    }
+    .profile-pic:hover {
+        transform: scale(1.05) rotate(5deg);
+    }
+    .stat-value {
+        font-weight: 600;
+        font-size: 2.5rem;
+        line-height: 1;
+    }
+    .stat-label {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.7;
+    }
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+    }
+    .chart-container {
+        height: 250px;
+        margin-top: 20px;
+    }
+    .shake-btn {
+        display: inline-block;
+        animation: shake 5s ease infinite;
+        animation-play-state: paused;
+    }
+    .shake-btn:hover {
+        animation-play-state: running;
+    }
+    @keyframes shake {
+        0% { transform: rotate(0); }
+        5% { transform: rotate(5deg); }
+        10% { transform: rotate(-5deg); }
+        15% { transform: rotate(5deg); }
+        20% { transform: rotate(0); }
+        100% { transform: rotate(0); }
+    }
+    .achievements {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .achievement-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 15px;
+        border-radius: 50px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(5px);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        font-size: 0.85rem;
+        transition: all 0.3s;
+    }
+    .achievement-badge:hover {
+        transform: translateY(-3px);
+    }
+    .achievement-badge i {
+        margin-right: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Overview</a></li>
+                <li class="breadcrumb-item active">{{ neighbor.fullName or neighbor.id }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if neighbor.pfp %}
+                <img src="{{ neighbor.pfp }}" alt="Profile" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                {% else %}
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 120px; height: 120px;">
+                    <i class="fas fa-user text-white fa-3x"></i>
+                </div>
+                {% endif %}
+                <h4>{{ neighbor.fullName or neighbor.id }}</h4>
+                {% if neighbor.slackFullName and neighbor.slackFullName[0] %}
+                <p class="text-muted">{{ neighbor.slackFullName[0] }}</p>
+                {% endif %}
+                
+                {% if neighbor.githubUsername %}
+                <a href="https://github.com/{{ neighbor.githubUsername }}" target="_blank" class="btn btn-outline-dark btn-sm">
+                    <i class="fab fa-github"></i> GitHub Profile
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-clock text-primary"></i> Total Check Time
+                        </h5>
+                        <h2 class="text-primary">{{ "%.1f"|format(neighbor.totalCheckedTime or 0) }} h</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-code text-success"></i> Hackatime
+                        </h5>
+                        <h2 class="text-success">{{ "%.1f"|format(neighbor.totalTimeHackatimeHours or 0) }} h</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-stopwatch text-info"></i> Stopwatch
+                        </h5>
+                        <h2 class="text-info">{{ "%.1f"|format(neighbor.totalTimeStopwatchHours or 0) }} h</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-plane text-warning"></i> Airport
+                        </h5>
+                        <h3 class="text-warning">
+                            {% if neighbor.airport %}
+                            {{ neighbor.airport }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4 g-3">
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="stat-value text-primary mb-1">{{ "%.1f"|format(neighbor.totalCheckedTime or 0) }}</div>
+                <div class="stat-label">Check Time (h)</div>
+                <div class="progress mt-3">
+                    {% set progress = (neighbor.totalCheckedTime / 100 * 100) if neighbor.totalCheckedTime else 0 %}
+                    {% set progress = 100 if progress > 100 else progress %}
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ progress }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="stat-value text-success mb-1">{{ "%.1f"|format(neighbor.totalTimeHackatimeHours or 0) }}</div>
+                <div class="stat-label">Hackatime (h)</div>
+                <div class="progress mt-3">
+                    {% set progress = (neighbor.totalTimeHackatimeHours / 100 * 100) if neighbor.totalTimeHackatimeHours else 0 %}
+                    {% set progress = 100 if progress > 100 else progress %}
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="stat-value text-info mb-1">{{ "%.1f"|format(neighbor.totalTimeStopwatchHours or 0) }}</div>
+                <div class="stat-label">Stopwatch (h)</div>
+                <div class="progress mt-3">
+                    {% set progress = (neighbor.totalTimeStopwatchHours / 50 * 100) if neighbor.totalTimeStopwatchHours else 0 %}
+                    {% set progress = 100 if progress > 100 else progress %}
+                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ progress }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                {% set combined_time = (neighbor.totalCheckedTime or 0) + (neighbor.totalTimeHackatimeHours or 0) + (neighbor.totalTimeStopwatchHours or 0) %}
+                <div class="stat-value text-warning mb-1">{{ "%.1f"|format(combined_time) }}</div>
+                <div class="stat-label">Total (h)</div>
+                <div class="progress mt-3">
+                    {% set progress = (combined_time / 200 * 100) if combined_time else 0 %}
+                    {% set progress = 100 if progress > 100 else progress %}
+                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ progress }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Check Time History
+                </h5>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-secondary active" data-period="all">All</button>
+                    <button class="btn btn-sm btn-outline-secondary" data-period="month">30 Days</button>
+                    <button class="btn btn-sm btn-outline-secondary" data-period="week">7 Days</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="timeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-star"></i> Statistics</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                        <span><i class="fas fa-history text-muted"></i> Total Updates</span>
+                        <span class="badge bg-primary rounded-pill">{{ updates|length }}</span>
+                    </li>
+                    {% if updates %}
+                        {% set total_updates = updates|length %}
+                        {% set total_growth = updates|sum(attribute='totalCheckedTimeUpdate') if total_updates > 0 else 0 %}
+                        {% set average_growth = total_growth / total_updates if total_updates > 0 else 0 %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                            <span><i class="fas fa-arrow-trend-up text-muted"></i> Avg. Check Time Update</span>
+                            <span class="badge {% if average_growth > 0 %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                                {{ "%.1f"|format(average_growth) }} h
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                            <span><i class="fas fa-calendar text-muted"></i> Last Update</span>
+                            <span class="text-muted small">{{ updates[0].timestamp if updates[0].timestamp else 'Unknown' }}</span>
+                        </li>
+                    {% endif %}
+                </ul>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <button id="celebrateBtn" class="btn btn-primary">
+                        <i class="fas fa-party-horn"></i> Celebrate Achievement
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-history"></i> Check Time Updates
+        </h5>
+        <button class="btn btn-sm btn-outline-primary" id="refreshUpdates">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+    </div>
+    <div class="card-body" id="updatesContainer">
+        {% if updates %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Check Time</th>
+                        <th>Change</th>
+                        <th>Hackatime</th>
+                        <th>Stopwatch</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for update in updates %}
+                    <tr class="{% if loop.index0 == 0 %}update-animation{% endif %}">
+                        <td>
+                            {% if update.timestamp %}
+                            <small class="text-muted">{{ update.timestamp }}</small>
+                            {% else %}
+                            <small class="text-muted">Unknown</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">
+                                {{ "%.1f"|format(update.totalCheckedTime or 0) }} h
+                            </span>
+                        </td>
+                        <td>
+                            {% if update.totalCheckedTimeUpdate %}
+                                {% if update.totalCheckedTimeUpdate > 0 %}
+                                <span class="badge bg-success">
+                                    +{{ "%.1f"|format(update.totalCheckedTimeUpdate) }} h
+                                </span>
+                                {% elif update.totalCheckedTimeUpdate < 0 %}
+                                <span class="badge bg-danger">
+                                    {{ "%.1f"|format(update.totalCheckedTimeUpdate) }} h
+                                </span>
+                                {% else %}
+                                <span class="badge bg-secondary">0 h</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ "%.1f"|format(update.totalTimeHackatimeHours or 0) }} h</td>
+                        <td>{{ "%.1f"|format(update.totalTimeStopwatchHours or 0) }} h</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-info-circle text-muted fa-3x mb-3"></i>
+            <h5 class="text-muted">No updates available</h5>
+            <p class="text-muted">No check time updates have been recorded for this neighbor yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Chart.js Setup
+        const ctx = document.getElementById('timeChart').getContext('2d');
+        const timeChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [{% if updates %}{% for update in updates|reverse %}'{{ update.timestamp if update.timestamp else "Update " + loop.index|string }}'{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}],
+                datasets: [{
+                    label: 'Check-Zeit (h)',
+                    data: [{% if updates %}{% for update in updates|reverse %}{{ update.totalCheckedTime or 0 }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}],
+                    fill: true,
+                    backgroundColor: 'rgba(0, 113, 227, 0.1)',
+                    borderColor: 'rgba(0, 113, 227, 1)',
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + ' h';
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Fun Facts Generator
+        const funFacts = [
+            'Wenn {{ neighbor.fullName or "dieser Nachbar" }} {{ neighbor.totalCheckedTime or 0 }} Stunden am Stück gearbeitet hätte, wären das {{ (neighbor.totalCheckedTime / 24)|round }} Tage!',
+            'Mit {{ neighbor.totalCheckedTime or 0 }} Check-Stunden könnte man ungefähr {{ (neighbor.totalCheckedTime / 2.5)|round }} Filme schauen!',
+            '{{ neighbor.totalCheckedTime or 0 }} Stunden entsprechen etwa {{ (neighbor.totalCheckedTime / 168 * 100)|round }}% eines Monats!',
+            'In {{ neighbor.totalCheckedTime or 0 }} Stunden könnte man ungefähr {{ (neighbor.totalCheckedTime / 5)|round }} Bücher lesen!',
+            'Mit {{ neighbor.totalCheckedTime or 0 }} Stunden könnte man fast {{ (neighbor.totalCheckedTime / 3)|round }} Marathons laufen!'
+        ];
+        
+        const funFactBtn = document.getElementById('fun-fact-btn');
+        const funFactBadge = document.getElementById('fun-fact-badge');
+        const funFactText = document.getElementById('fun-fact-text');
+        
+        funFactBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const randomFact = funFacts[Math.floor(Math.random() * funFacts.length)];
+            funFactText.textContent = randomFact;
+            funFactBadge.classList.remove('d-none');
+            
+            // Animiere das Badge
+            funFactBadge.classList.add('update-animation');
+            setTimeout(() => {
+                funFactBadge.classList.remove('update-animation');
+            }, 4000);
+        });
+        
+        // Celebrate Button
+        const celebrateBtn = document.getElementById('celebrateBtn');
+        const profilePic = document.getElementById('profile-pic');
+        
+        celebrateBtn.addEventListener('click', function() {
+            // Konfetti-Animation starten
+            shootConfetti();
+            
+            // Profile Bild animieren
+            profilePic.style.transform = 'scale(1.2) rotate(10deg)';
+            setTimeout(() => {
+                profilePic.style.transform = '';
+            }, 1000);
+            
+            // Button animieren
+            this.innerHTML = '<i class="fas fa-check"></i> Hurra!';
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-party-horn"></i> Leistung feiern';
+            }, 2000);
+        });
+        
+        // Aktualisieren Button
+        document.getElementById('refreshUpdates').addEventListener('click', function() {
+            const button = this;
+            const originalContent = button.innerHTML;
+            
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Wird aktualisiert...';
+            
+            // Simuliere Aktualisierung (in einem echten System würde hier ein AJAX-Call stehen)
+            setTimeout(() => {
+                button.innerHTML = '<i class="fas fa-check"></i> Aktualisiert!';
+                setTimeout(() => {
+                    button.innerHTML = originalContent;
+                    button.disabled = false;
+                }, 1500);
+            }, 1000);
+        });
+        
+        // Period Selector für Chart
+        document.querySelectorAll('[data-period]').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('[data-period]').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Simuliere Filtern nach Zeitraum (würde im echten Fall die Daten filtern)
+                const period = this.dataset.period;
+                let dataLength;
+                
+                switch(period) {
+                    case 'week':
+                        dataLength = Math.min(7, timeChart.data.labels.length);
+                        break;
+                    case 'month':
+                        dataLength = Math.min(30, timeChart.data.labels.length);
+                        break;
+                    default:
+                        dataLength = timeChart.data.labels.length;
+                }
+                
+                timeChart.data.labels = timeChart.data.labels.slice(0, dataLength);
+                timeChart.data.datasets[0].data = timeChart.data.datasets[0].data.slice(0, dataLength);
+                timeChart.update();
+            });
+        });
+    });
+</script>
+{% endblock %}

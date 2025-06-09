@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Neighborhood Check - Overview{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    {% if username %}
+    <div class="col-12">
+        <div class="alert alert-primary text-center fw-bold" role="alert">
+            <i class="fas fa-user"></i> Hello, {{ username }}! Welcome back!
+        </div>
+    </div>
+    {% if user_stats %}
+    <div class="col-12">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-bar text-primary"></i> Your Stats
+                </h5>
+                <div class="row">
+                    <div class="col-md-3">
+                        <h6>Total Check Time</h6>
+                        <h2 class="text-primary">{{ "%.1f"|format(user_stats.total_checked_time) }} h</h2>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Hackatime</h6>
+                        <h2 class="text-success">{{ "%.1f"|format(user_stats.total_time_hackatime) }} h</h2>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Stopwatch</h6>
+                        <h2 class="text-info">{{ "%.1f"|format(user_stats.total_time_stopwatch) }} h</h2>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>Airport</h6>
+                        <h2 class="text-warning">{{ user_stats.airport }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-users text-primary"></i> Total Neighbors
+                </h5>
+                <h2 class="text-primary">{{ total_neighbors }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-clock text-success"></i> Total Check Time
+                </h5>
+                <h2 class="text-success">{{ "%.1f"|format(total_checked_time) }} h</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-line text-info"></i> Average
+                </h5>
+                <h2 class="text-info">{{ "%.1f"|format(total_checked_time / total_neighbors if total_neighbors > 0 else 0) }} h</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card">
+            <div class="card-body text-center">
+                <button id="manualCheckBtn" class="btn btn-primary btn-sm mb-2">
+                    <i class="fas fa-sync-alt"></i> Manual Check
+                </button>
+                <br>
+                <small class="text-muted">
+                    <i class="fas fa-robot"></i> Auto-Check: every 30min
+                </small>
+                <br>
+                <small id="nextCheckTime" class="text-info">
+                    <i class="fas fa-clock"></i> Loading next check...
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list"></i> Neighbors Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Profile</th>
+                                <th>Name</th>
+                                <th>GitHub</th>
+                                <th>Check Time</th>
+                                <th>Hackatime</th>
+                                <th>Stopwatch</th>
+                                <th>Airport</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for neighbor in neighbors %}
+                            <tr class="neighbor-card">
+                                <td>
+                                    {% if neighbor.pfp %}
+                                    <img src="{{ neighbor.pfp }}" alt="Profile" class="profile-img">
+                                    {% else %}
+                                    <div class="profile-img bg-secondary d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('neighbor_detail', neighbor_id=neighbor.id) }}" class="text-decoration-none">
+                                        <strong>{{ neighbor.fullName or neighbor.id }}</strong>
+                                    </a>
+                                    {% if neighbor.slackFullName %}
+                                    <br><small class="text-muted">{{ neighbor.slackFullName[0] if neighbor.slackFullName else '' }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if neighbor.githubUsername %}
+                                    <a href="https://github.com/{{ neighbor.githubUsername }}" target="_blank" class="text-decoration-none">
+                                        <i class="fab fa-github"></i> {{ neighbor.githubUsername }}
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary fs-6">
+                                        {{ "%.1f"|format(neighbor.totalCheckedTime or 0) }} h
+                                    </span>
+                                </td>
+                                <td>{{ "%.1f"|format(neighbor.totalTimeHackatimeHours or 0) }} h</td>
+                                <td>{{ "%.1f"|format(neighbor.totalTimeStopwatchHours or 0) }} h</td>
+                                <td>
+                                    {% if neighbor.airport %}
+                                    <span class="badge bg-info">{{ neighbor.airport }}</span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('manualCheckBtn').addEventListener('click', function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+    
+    fetch('/manual-check')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                btn.innerHTML = '<i class="fas fa-check"></i> Success';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-success');
+                
+                // Reload page after 2 seconds
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                btn.innerHTML = '<i class="fas fa-times"></i> Error';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-danger');
+            }
+        })
+        .catch(error => {
+            btn.innerHTML = '<i class="fas fa-times"></i> Error';
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-danger');
+        })
+        .finally(() => {
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                btn.classList.remove('btn-success', 'btn-danger');
+                btn.classList.add('btn-primary');
+            }, 3000);
+        });
+});
+
+// Load next check time and display it
+function updateNextCheckTime() {
+    fetch('/next-check')
+        .then(response => response.json())
+        .then(data => {
+            const nextCheckElement = document.getElementById('nextCheckTime');
+            if (data.next_run_formatted && data.next_run_formatted !== 'Not available') {
+                const minutesUntil = data.minutes_until;
+                if (minutesUntil !== null) {
+                    nextCheckElement.innerHTML = `<i class="fas fa-clock"></i> Next Check: ${data.next_run_formatted} (in ${minutesUntil} min)`;
+                } else {
+                    nextCheckElement.innerHTML = `<i class="fas fa-clock"></i> Next Check: ${data.next_run_formatted}`;
+                }
+            } else {
+                nextCheckElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Scheduler not active';
+                nextCheckElement.classList.add('text-warning');
+            }
+        })
+        .catch(error => {
+            document.getElementById('nextCheckTime').innerHTML = '<i class="fas fa-times"></i> Error loading';
+        });
+}
+
+// Initial load
+updateNextCheckTime();
+
+// Update every 60 seconds
+setInterval(updateNextCheckTime, 60000);
+</script>
+{% endblock %}

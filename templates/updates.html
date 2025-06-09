@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Neighborhood Check - Updates{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock"></i> Latest Check Time Updates
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if updates %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Name</th>
+                                <th>New Check Time</th>
+                                <th>Update</th>
+                                <th>GitHub</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for update in updates %}
+                            <tr>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ update.timestamp if update.timestamp else 'Unknown' }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <strong>{{ update.fullName or update.id }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">
+                                        {{ "%.1f"|format(update.totalCheckedTime or 0) }} h
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if update.totalCheckedTimeUpdate > 0 %}
+                                    <span class="badge bg-success">
+                                        +{{ "%.1f"|format(update.totalCheckedTimeUpdate) }} h
+                                    </span>
+                                    {% elif update.totalCheckedTimeUpdate < 0 %}
+                                    <span class="badge bg-danger">
+                                        {{ "%.1f"|format(update.totalCheckedTimeUpdate) }} h
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">0 h</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if update.githubUsername %}
+                                    <a href="https://github.com/{{ update.githubUsername }}" target="_blank" class="text-decoration-none">
+                                        <i class="fab fa-github"></i> {{ update.githubUsername }}
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-info-circle text-muted fa-3x mb-3"></i>
+                    <h5 class="text-muted">No updates available</h5>
+                    <p class="text-muted">No check time updates have been recorded yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
