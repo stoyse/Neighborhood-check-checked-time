@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Neighborhood Check - Airport Map{% endblock %}
+
+{% block head %}
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-sA+e2V4mhsTirzrxvJyK9v3RkDaU9R+0Gu6u5H0T6kM="
+  crossorigin=""
+/>
+<style>
+  #map { height: 600px; border-radius: var(--card-radius); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col-12">
+    <h3 class="text-center"><i class="fas fa-map-marked-alt"></i> Airport User Map</h3>
+    <div id="map"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-VX3E8wCatherho9NsP0OMs3cm+qlIAmpVvHjX9Z01Y="
+  crossorigin=""
+></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const airportData = {{ airport_map | tojson }};
+  const map = L.map('map').setView([20,0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18
+  }).addTo(map);
+
+  // Geocode each airport code via Nominatim
+  Object.entries(airportData).forEach(([code, users]) => {
+    const query = encodeURIComponent(code + ' airport');
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`)
+      .then(res => res.json())
+      .then(results => {
+        if (results && results[0]) {
+          const { lat, lon, display_name } = results[0];
+          const marker = L.marker([lat, lon]).addTo(map);
+          marker.bindPopup(
+            `<strong>${code}</strong> (${display_name})<br>` +
+            users.map(u => `<i class="fas fa-user"></i> ${u}`).join('<br>')
+          );
+        }
+      })
+      .catch(err => console.error('Geocode error', code, err));
+  });
+});
+</script>
+{% endblock %}

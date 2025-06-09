@@ -284,6 +284,16 @@ def neighbor_detail(neighbor_id):
                          neighbor=neighbor,
                          updates=updates)
 
+@app.route('/map')
+def airport_map():
+    """Interactive map showing users by airport"""
+    neighbors = get_neighbors()
+    airport_map = {}
+    for n in neighbors:
+        code = n.get('airport') or 'Unknown'
+        airport_map.setdefault(code, []).append(n.get('fullName') or n.get('id'))
+    return render_template('map.html', airport_map=airport_map)
+
 # Easter Egg - Select a random neighbor
 @app.route('/random-neighbor')
 def random_neighbor():
