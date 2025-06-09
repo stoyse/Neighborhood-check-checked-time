@@ -1,0 +1,28 @@
+[Unit]
+Description=Start Gunicorn server for buyhigh.io
+
+[Service]
+# Setze das Arbeitsverzeichnis. Dies ist wichtig, damit relative Pfade
+# im start_server.sh Skript (wie PIDFILE="./gunicorn.pid") korrekt funktionieren.
+WorkingDirectory=/home/stoyse/Neighborhood-check-checked-time
+
+ExecStart=//home/stoyse/Neighborhood-check-checked-time/start_service.sh
+
+# Spezifiziere den Pfad zur PID-Datei, die Gunicorn erstellt.
+# Dies muss dem Wert von $PIDFILE im start_server.sh Skript entsprechen,
+# aufgelöst zu einem absoluten Pfad.
+PIDFile=/home/stoyse/Neighborhood-check-checked-time/gunicorn.pid
+
+# Type=simple ist der Standard für User-Services und passend, da
+# start_server.sh Gunicorn im Vordergrund ausführt und erst beendet wird,
+# wenn Gunicorn beendet wird. Explizite Angabe ist optional, aber gut für die Klarheit.
+# Type=simple
+
+Restart=always
+RestartSec=5
+StandardOutput=file:/home/stoyse/Neighborhood-check-checked-time/gunicorn_output.log
+StandardError=file:/home/stoyse/Neighborhood-check-checked-time/gunicorn_error.log
+
+[Install]
+WantedBy=default.target
+
