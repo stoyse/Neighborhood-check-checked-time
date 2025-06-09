@@ -8,6 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 import logging
 from pytz import timezone
+import requests
 
 app = Flask(__name__)
 
@@ -175,6 +176,15 @@ def get_user_stats(username):
 def inject_now():
     return {'now': datetime.now()}
 
+def fetch_live_pfp(neighbor):
+    # Beispiel-API-Aufruf, um das Profilbild zu aktualisieren
+    api_url = f"https://api.example.com/users/{neighbor['id']}/pfp"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        neighbor['pfp'] = response.json().get('pfp_url')
+    else:
+        neighbor['pfp'] = None  # Fallback, falls die API fehlschlägt
+
 @app.route('/')
 def index():
     """Hauptseite mit Nachbarn-Übersicht"""
@@ -183,6 +193,10 @@ def index():
     neighbors = get_neighbors()
     total_neighbors = len(neighbors)
     total_checked_time = sum(n.get('totalCheckedTime', 0) for n in neighbors)
+    
+    # Aktualisiere das Profilbild für jeden Nachbarn
+    for neighbor in neighbors:
+        fetch_live_pfp(neighbor)
     
     return render_template('index.html', 
                            neighbors=neighbors,

@@ -130,32 +130,6 @@
                                     <a href="{{ url_for('neighbor_detail', neighbor_id=neighbor.id) }}" class="text-decoration-none">
                                         <strong>{{ neighbor.fullName or neighbor.id }}</strong>
                                     </a>
-                                    {% if neighbor.slackFullName %}
-                                    <br><small class="text-muted">{{ neighbor.slackFullName[0] if neighbor.slackFullName else '' }}</small>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if neighbor.githubUsername %}
-                                    <a href="https://github.com/{{ neighbor.githubUsername }}" target="_blank" class="text-decoration-none">
-                                        <i class="fab fa-github"></i> {{ neighbor.githubUsername }}
-                                    </a>
-                                    {% else %}
-                                    <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <span class="badge bg-primary fs-6">
-                                        {{ "%.1f"|format(neighbor.totalCheckedTime or 0) }} h
-                                    </span>
-                                </td>
-                                <td>{{ "%.1f"|format(neighbor.totalTimeHackatimeHours or 0) }} h</td>
-                                <td>{{ "%.1f"|format(neighbor.totalTimeStopwatchHours or 0) }} h</td>
-                                <td>
-                                    {% if neighbor.airport %}
-                                    <span class="badge bg-info">{{ neighbor.airport }}</span>
-                                    {% else %}
-                                    <span class="text-muted">-</span>
-                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -179,7 +153,7 @@ document.getElementById('manualCheckBtn').addEventListener('click', function() {
     
     fetch('/manual-check')
         .then(response => response.json())
-        .then(data => {
+        .then data => {
             if (data.status === 'success') {
                 btn.innerHTML = '<i class="fas fa-check"></i> Success';
                 btn.classList.remove('btn-primary');
